@@ -1,0 +1,101 @@
+# PEAD Capture
+
+Low-latency earnings-results capture for Indian equities using free public NSE/BSE corporate filing endpoints.
+
+## Local Setup
+
+```bash
+npm install
+python3 -m pip install -r requirements.txt
+cp .env.example .env
+npm run dev
+```
+
+Open `http://localhost:4173`.
+
+## Modes
+
+- `COLLECTOR_MODE=live` polls public NSE/BSE announcement endpoints. This is the default.
+
+## Environment
+
+```bash
+PORT=4173
+POLL_INTERVAL_MS=6000
+HOT_POLL_INTERVAL_MS=3000
+COLLECTOR_MODE=live
+WATCHLIST=
+PYTHON_PATH=python3
+NSE_ANNOUNCEMENTS_URL=https://www.nseindia.com/api/corporate-announcements?index=equities
+BSE_ANNOUNCEMENTS_URL=https://api.bseindia.com/BseIndiaAPI/api/AnnGetData/w?strCat=-1&strPrevDate=&strScrip=&strSearch=P&strToDate=&strType=C
+```
+
+## Scripts
+
+```bash
+npm run dev      # local development
+npm start        # production server
+npm run lint     # syntax checks for Node and Python files
+```
+
+## Architecture
+
+```mermaid
+flowchart LR
+  A[NSE public filings] --> C[Collectors]
+  B[BSE public announcements] --> C
+  C --> D[Deduplication]
+  D --> E[Attachment fetch]
+  E --> F[Parser]
+  F --> G[PEAD scorer]
+  G --> H[SSE/API]
+  H --> I[Dashboard]
+```
+
+## Production Notes
+
+- NSE and BSE portal URLs are configured in `.env` so they can be changed without code edits.
+- NSE/BSE polling is implemented in Python through `apps/backend/python/polling_service.py`.
+- PDF fetching and financial metric extraction is implemented in Python through `apps/backend/python/parser_service.py`.
+- Public endpoints may throttle, change shape, or reject traffic. The Python services are isolated so hardened fetch/session logic can be swapped in without touching the dashboard.
+- The dashboard receives updates through Server-Sent Events, so it does not add repeated browser polling load.
+
+## Deployment
+
+### Long-running server
+
+This is the recommended deployment style because the app continuously polls NSE/BSE and streams live events to the dashboard.
+
+```bash
+npm install --omit=dev
+python3 -m pip install -r requirements.txt
+cp .env.example .env
+npm start
+```
+
+Make sure the host provides:
+
+- Node.js 20+
+- Python 3.10+
+- outbound HTTPS access to NSE/BSE
+- persistent process support
+
+### Docker
+
+```bash
+docker build -t pead-capture .
+docker run --env-file .env -p 4173:4173 pead-capture
+```
+
+### Render, Railway, Fly.io, VPS, EC2, DigitalOcean
+
+Use `npm start` as the start command. Install Python dependencies from `requirements.txt`, or use the included `Dockerfile`.
+
+### Vercel
+
+Vercel is excellent for frontend and serverless APIs, but this app currently uses a long-running polling process plus Server-Sent Events. For Vercel, use one of these patterns:
+
+- Deploy the dashboard/frontend on Vercel and run the polling API on a long-running host.
+- Refactor the collector into Vercel Cron Jobs that write to a database, then let the dashboard read from that database.
+
+See `deployment/vercel/README.md` for details.

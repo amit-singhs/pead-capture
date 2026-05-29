@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PEAD Capture</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="rail">
+        <div class="brand">
+          <div class="brand-mark">P</div>
+          <div>
+            <strong>PEAD Capture</strong>
+            <span>India earnings radar</span>
+          </div>
+        </div>
+        <nav class="nav">
+          <a class="active" href="/" title="Live dashboard">⌁</a>
+          <a href="/explain.html" title="Metric guide">?</a>
+        </nav>
+        <div class="rail-foot">
+          <span id="connection-dot" class="status-dot"></span>
+          <small id="connection-label">Connecting</small>
+        </div>
+      </aside>
+
+      <main>
+        <header class="topbar">
+          <section>
+            <p class="eyebrow">Live filing intelligence</p>
+            <h1>Post-earnings drift command center</h1>
+          </section>
+          <section class="top-actions">
+            <div class="latency tip" data-tip="How long the latest filing took from exchange time to dashboard processing.">
+              <span>Latest latency</span>
+              <strong id="latest-latency">--</strong>
+            </div>
+            <button id="refresh-button" class="ghost-button">Refresh</button>
+          </section>
+        </header>
+
+        <section class="market-switch" aria-label="Market filter">
+          <button class="market-tab active" data-source="NSE">NSE</button>
+          <button class="market-tab" data-source="BSE">BSE</button>
+        </section>
+
+        <section class="metrics-grid">
+          <article class="tip" data-tip="Total earnings signals created by the system in this session.">
+            <span>Signals</span>
+            <strong id="signal-count">0</strong>
+          </article>
+          <article class="tip" data-tip="Total quarterly result filings detected from NSE/BSE public portals.">
+            <span>Filings</span>
+            <strong id="filing-count">0</strong>
+          </article>
+          <article class="tip" data-tip="Signals where the PEAD score is strong enough to watch for a buy decision.">
+            <span>Buy Watch</span>
+            <strong id="buy-count">0</strong>
+          </article>
+          <article class="tip" data-tip="How long ago the app last checked NSE and BSE.">
+            <span>Last poll</span>
+            <strong id="last-poll">--</strong>
+          </article>
+        </section>
+
+        <section class="workspace">
+          <div class="signals-panel">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Decision stream</p>
+                <h2>Live PEAD signals</h2>
+              </div>
+              <span id="last-updated">Waiting for data</span>
+            </div>
+            <div class="signal-filter" aria-label="Signal filter">
+              <button class="filter-tab active" data-filter="ALL">All</button>
+              <button class="filter-tab" data-filter="BUY WATCH">Buy Watch</button>
+              <button class="filter-tab" data-filter="POSITIVE">Positive</button>
+              <button class="filter-tab" data-filter="NEUTRAL">Neutral</button>
+              <button class="filter-tab" data-filter="AVOID / SELL WATCH">Avoid</button>
+            </div>
+            <div id="signals" class="signals"></div>
+          </div>
+
+          <aside class="inspector">
+            <div class="section-head compact">
+              <div>
+                <p class="eyebrow">Exchange feed</p>
+                <h2>Fresh reports</h2>
+              </div>
+            </div>
+            <div id="poll-status" class="poll-status">Waiting for first live poll.</div>
+            <div id="filings" class="filings"></div>
+            <div class="section-head compact lower-head">
+              <div>
+                <p class="eyebrow">Older than 5 hours</p>
+                <h2>Previous reports</h2>
+              </div>
+            </div>
+            <div id="previous-filings" class="filings"></div>
+            <div class="debug-panel">
+              <p class="eyebrow">System health</p>
+              <div id="errors" class="errors">No collector errors.</div>
+            </div>
+          </aside>
+        </section>
+      </main>
+    </div>
+
+    <script src="/app.js" type="module"></script>
+  </body>
+</html>
