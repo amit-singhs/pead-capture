@@ -35,6 +35,7 @@ def pdf_text(data):
         pages.append(text)
     return {
         "text": "\n".join(pages)[:150000],
+        "pages": pages,
         "pageCountRead": min(len(reader.pages), 10),
         "emptyPageCount": empty_pages,
     }
@@ -148,43 +149,74 @@ def sanitize_growth(value):
     return value
 
 
+def evidence_for_metric(pages, names, current_value):
+    if not pages:
+        return None
+    current_text = None
+    if current_value is not None:
+        current_text = str(current_value).rstrip("0").rstrip(".")
+    for page_index, page_text in enumerate(pages[:10]):
+        lines = [line.strip() for line in page_text.splitlines() if line.strip()]
+        for line_index, line in enumerate(lines):
+            lower_line = line.lower()
+            if not any(name in lower_line for name in names):
+                continue
+            window_lines = lines[line_index : line_index + 5]
+            snippet = " ".join(window_lines)
+            if current_text and current_text not in snippet.replace(",", ""):
+                nearby = " ".join(lines[max(0, line_index - 2) : line_index + 8])
+                snippet = nearby
+            return {
+                "page": page_index + 1,
+                "snippet": re.sub(r"\s+", " ", snippet)[:700],
+                "matchedLabels": names[:3],
+                "locatorType": "text-snippet",
+                "precision": "page-and-snippet",
+                "note": "The verification view renders this PDF page and highlights the matched label when the text layer supports it.",
+            }
+    return None
+
+
 def pct_change(current, previous):
     if current is None or previous in (None, 0):
         return None
     return round(((current - previous) / abs(previous)) * 100, 2)
 
 
-def extract_metrics(text, mode, pdf_stats=None):
+def extract_metrics(text, mode, pdf_stats=None, pages=None):
     flat = re.sub(r"\s+", " ", text)
     lower = flat.lower()
     amount_unit = detect_amount_unit(text[:12000])
+    revenue_labels = [
+        "revenue from operations",
+        "total income",
+        "total revenue",
+        "revenue",
+        "sales",
+    ]
+    profit_labels = [
+        "profit after tax",
+        "net profit after tax",
+        "net profit",
+        "profit for the period",
+        "pat",
+    ]
+    eps_labels = ["basic eps", "diluted eps", "earnings per share", "eps"]
 
     revenue_current, revenue_previous = best_row_values(
         text,
         flat,
-        [
-            "revenue from operations",
-            "total income",
-            "total revenue",
-            "revenue",
-            "sales",
-        ],
+        revenue_labels,
     )
     profit_current, profit_previous = best_row_values(
         text,
         flat,
-        [
-            "profit after tax",
-            "net profit after tax",
-            "net profit",
-            "profit for the period",
-            "pat",
-        ],
+        profit_labels,
     )
     eps_current, eps_previous = best_row_values(
         text,
         flat,
-        ["basic eps", "diluted eps", "earnings per share", "eps"],
+        eps_labels,
         max_abs=10000,
     )
     eps_current, eps_previous = sanitize_eps(eps_current, eps_previous)
@@ -234,6 +266,11 @@ def extract_metrics(text, mode, pdf_stats=None):
         "currency": "INR",
         "extractionWarning": extraction_warning,
         "pdfStats": pdf_stats or {},
+        "evidence": {
+            "revenue": evidence_for_metric(pages or [], revenue_labels, revenue_current),
+            "profit": evidence_for_metric(pages or [], profit_labels, profit_current),
+            "eps": evidence_for_metric(pages or [], eps_labels, eps_current),
+        },
         "parserConfidence": confidence,
         "extractionMode": mode,
         "textPreview": flat[:420],
@@ -257,6 +294,7 @@ def main():
         data = fetch_bytes(filing["attachmentUrl"])
         parsed_pdf = pdf_text(data)
         text = parsed_pdf["text"]
+        pages = parsed_pdf["pages"]
         pdf_stats = {
             "pageCountRead": parsed_pdf["pageCountRead"],
             "emptyPageCount": parsed_pdf["emptyPageCount"],
@@ -264,13 +302,15 @@ def main():
         mode = "python-pdf-text"
     else:
         text = ""
+        pages = []
         pdf_stats = {}
         mode = "python-empty"
 
     if filing.get("inlineText"):
         pdf_stats = {}
+        pages = [text]
 
-    metrics = extract_metrics(text, mode, pdf_stats)
+    metrics = extract_metrics(text, mode, pdf_stats, pages)
     metrics["parseDurationMs"] = round((time.perf_counter() - started) * 1000)
     print(json.dumps({"metrics": metrics}))
 

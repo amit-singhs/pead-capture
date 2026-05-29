@@ -88,6 +88,15 @@ const persistLatestReports = () => {
   sessionStorage.setItem("pead.latestReports", JSON.stringify(latestBySource));
 };
 
+const persistVerificationSignals = () => {
+  const compactSignals = state.signals.slice(0, 80);
+  try {
+    localStorage.setItem("pead.verifySignals", JSON.stringify(compactSignals));
+  } catch {
+    localStorage.removeItem("pead.verifySignals");
+  }
+};
+
 const comparisonClass = (current, previous) => {
   if (current === null || current === undefined || previous === null || previous === undefined) return "";
   if (current > previous) return "up";
@@ -102,6 +111,8 @@ const metric = ({ label, current, previous, suffix = "", tip, formatter = format
     <small>Prev ${formatter(previous, suffix)}</small>
   </div>
 `;
+
+const verifyUrl = (signal) => `/verify.html?id=${encodeURIComponent(signal.id)}`;
 
 const renderSignals = () => {
   const root = $("#signals");
@@ -166,7 +177,7 @@ const renderSignals = () => {
           <span>Latency ${formatLatency(signal.latencyMs)}</span>
           <span>Confidence ${Math.round((signal.confidence || 0) * 100)}%</span>
           ${signal.metrics.extractionWarning ? `<span class="warning-note">${signal.metrics.extractionWarning}</span>` : ""}
-          ${signal.attachmentUrl ? `<a href="${signal.attachmentUrl}" target="_blank" rel="noreferrer">Verify PDF</a>` : ""}
+          ${signal.attachmentUrl ? `<a href="${verifyUrl(signal)}" data-verify-signal="${encodeURIComponent(signal.id)}" target="_blank" rel="noreferrer">Verify with PDF</a>` : ""}
         </div>
       </article>
     `)
@@ -290,6 +301,7 @@ const render = () => {
   renderMarketTabs();
   renderFilterTabs();
   persistLatestReports();
+  persistVerificationSignals();
   updateDynamicTimes();
 };
 
@@ -387,6 +399,20 @@ document.querySelectorAll(".filter-tab").forEach((button) => {
     sessionStorage.setItem("pead.signalFilter", state.signalFilter);
     render();
   });
+});
+
+document.addEventListener("click", (event) => {
+  const link = event.target.closest("[data-verify-signal]");
+  if (!link) return;
+  const id = decodeURIComponent(link.dataset.verifySignal);
+  const signal = state.signals.find((item) => item.id === id);
+  if (!signal) return;
+  try {
+    localStorage.setItem(`pead.verifySignal.${id}`, JSON.stringify(signal));
+    localStorage.setItem("pead.verifySignal.latest", JSON.stringify(signal));
+  } catch {
+    localStorage.removeItem(`pead.verifySignal.${id}`);
+  }
 });
 
 connect();

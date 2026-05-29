@@ -30,6 +30,10 @@ export class InMemoryStore {
     return this.#signals.find((signal) => signal.symbol === symbol) || null;
   }
 
+  signalById(id) {
+    return this.#signals.find((signal) => signal.id === id) || null;
+  }
+
   snapshot() {
     const freshnessMs = Number(process.env.REPORT_FRESHNESS_HOURS || 5) * 60 * 60 * 1000;
     const now = Date.now();
