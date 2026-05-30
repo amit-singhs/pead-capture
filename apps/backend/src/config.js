@@ -19,11 +19,18 @@ const listFromEnv = (name, fallback) => {
 };
 
 const valueFromEnv = (name, fallback = "") => process.env[name] || fallback;
+const booleanFromEnv = (name, fallback) => {
+  const raw = process.env[name];
+  if (!raw) return fallback;
+  return ["1", "true", "yes", "on"].includes(raw.toLowerCase());
+};
 
 export const config = {
   port: numberFromEnv("PORT", 4173),
   pollIntervalMs: numberFromEnv("POLL_INTERVAL_MS", 6000),
   hotPollIntervalMs: numberFromEnv("HOT_POLL_INTERVAL_MS", 3000),
+  processingConcurrency: numberFromEnv("PROCESSING_CONCURRENCY", 3),
+  parserTimeoutMs: numberFromEnv("PARSER_TIMEOUT_MS", 30000),
   reportFreshnessHours: numberFromEnv("REPORT_FRESHNESS_HOURS", 5),
   mode: process.env.COLLECTOR_MODE || "live",
   pythonPath: process.env.PYTHON_PATH || "python3",
@@ -53,7 +60,8 @@ export const config = {
     timeoutMs: numberFromEnv("AI_TIMEOUT_MS", 18000),
     minLocalConfidence: numberFromEnv("AI_MIN_LOCAL_CONFIDENCE", 0.82),
     concurrency: numberFromEnv("AI_CONCURRENCY", 1),
-    rateLimitCooldownMs: numberFromEnv("AI_RATE_LIMIT_COOLDOWN_MS", 45000)
+    rateLimitCooldownMs: numberFromEnv("AI_RATE_LIMIT_COOLDOWN_MS", 45000),
+    requireSuccess: booleanFromEnv("AI_REQUIRE_SUCCESS", false)
   },
   staticRoot: new URL("../../frontend/", import.meta.url)
 };

@@ -134,6 +134,19 @@ export class FinancialAiExtractor {
 
     if (cache.has(cacheKey)) return cache.get(cacheKey);
 
+    const cooldownMs = Math.max(0, nextAiAllowedAt - Date.now());
+    if (cooldownMs > 0) {
+      return {
+        ...stripAiCandidatePages(metrics),
+        ai: {
+          provider: this.provider.name,
+          model: this.provider.model,
+          used: false,
+          error: `AI provider is rate-limited; skipped for ${Math.ceil(cooldownMs / 1000)}s cooldown`
+        }
+      };
+    }
+
     try {
       const aiResult = await withAiSlot(() => this.provider.extract(input));
       const merged = stripAiCandidatePages(

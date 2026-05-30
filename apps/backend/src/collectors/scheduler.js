@@ -2,6 +2,16 @@ import { logger } from "../utils/logger.js";
 
 const jitter = (base) => Math.round(base * (0.85 + Math.random() * 0.3));
 
+const processWithConcurrency = async (items, concurrency, handler) => {
+  const workers = Array.from({ length: Math.max(1, concurrency) }, async (_, workerIndex) => {
+    for (let index = workerIndex; index < items.length; index += Math.max(1, concurrency)) {
+      await handler(items[index]);
+    }
+  });
+
+  await Promise.all(workers);
+};
+
 export class CollectorScheduler {
   #timer = null;
   #running = false;
@@ -35,7 +45,11 @@ export class CollectorScheduler {
       this.collectors.map(async (collector) => {
         try {
           const filings = await collector.collect({ watchlist: this.watchlist });
-          await Promise.all(filings.map((filing) => this.pipeline.process(filing)));
+          await processWithConcurrency(
+            filings,
+            this.config.processingConcurrency,
+            (filing) => this.pipeline.process(filing)
+          );
           logger.debug("collector.completed", {
             source: collector.name,
             count: filings.length

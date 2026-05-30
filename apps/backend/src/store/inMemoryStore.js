@@ -1,5 +1,6 @@
 export class InMemoryStore {
   #filings = new Map();
+  #processedFilingIds = new Set();
   #signals = [];
   #errors = [];
   #pollStatus = null;
@@ -10,6 +11,14 @@ export class InMemoryStore {
 
   saveFiling(filing) {
     this.#filings.set(filing.id, filing);
+  }
+
+  hasProcessedFiling(id) {
+    return this.#processedFilingIds.has(id);
+  }
+
+  markFilingProcessed(id) {
+    this.#processedFilingIds.add(id);
   }
 
   saveSignal(signal) {

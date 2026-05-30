@@ -24,6 +24,8 @@ PORT=4173
 POLL_INTERVAL_MS=6000
 HOT_POLL_INTERVAL_MS=3000
 COLLECTOR_MODE=live
+PROCESSING_CONCURRENCY=3
+PARSER_TIMEOUT_MS=30000
 WATCHLIST=
 PYTHON_PATH=python3
 NSE_ANNOUNCEMENTS_URL=https://www.nseindia.com/api/corporate-announcements?index=equities
@@ -49,9 +51,11 @@ AI_TIMEOUT_MS=18000
 AI_MIN_LOCAL_CONFIDENCE=0.82
 AI_CONCURRENCY=1
 AI_RATE_LIMIT_COOLDOWN_MS=45000
+AI_REQUIRE_SUCCESS=false
 ```
 
 Cost control is handled by the local parser first selecting compact candidate financial pages from the PDF. The AI provider receives only those page snippets plus local extraction hints, not the full PDF. Results are cached by PDF/input hash during the process lifetime.
+When `AI_REQUIRE_SUCCESS=false`, filings still produce dashboard cards if the AI provider is rate-limited; those cards are labelled with the AI error state so they are not mistaken for AI-verified figures.
 
 ## Scripts
 

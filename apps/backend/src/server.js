@@ -28,8 +28,9 @@ const eventBus = new EventBus();
 const pipeline = new FilingPipeline({
   store,
   eventBus,
-  parser: new PythonResultParser(),
-  scorer: new PeadScorer()
+  parser: new PythonResultParser({ timeoutMs: config.parserTimeoutMs }),
+  scorer: new PeadScorer(),
+  config
 });
 
 const collectors = [new PythonPortalCollector({ eventBus })];
