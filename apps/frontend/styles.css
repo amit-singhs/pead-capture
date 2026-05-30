@@ -530,6 +530,34 @@ h2 {
   color: var(--amber);
 }
 
+.ai-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 0 8px;
+  border: 1px solid rgba(119, 167, 255, 0.24);
+  border-radius: 6px;
+  color: #cbd7e7;
+  background: rgba(119, 167, 255, 0.08);
+  font-weight: 850;
+}
+
+.ai-badge.verified {
+  color: var(--green);
+  border-color: rgba(53, 216, 159, 0.34);
+  background: rgba(53, 216, 159, 0.08);
+}
+
+.ai-badge.failed {
+  color: var(--red);
+  border-color: rgba(255, 107, 107, 0.34);
+  background: rgba(255, 107, 107, 0.08);
+}
+
+.ai-badge.muted {
+  color: var(--muted);
+}
+
 .filings {
   padding: 14px;
   display: grid;
@@ -775,6 +803,286 @@ h2 {
   text-align: center;
 }
 
+.verify-shell main {
+  max-width: 1680px;
+}
+
+.verify-topbar {
+  align-items: flex-start;
+}
+
+.verify-subtitle {
+  margin-top: 10px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.back-link {
+  display: inline-grid;
+  place-items: center;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.verify-content {
+  display: grid;
+  gap: 16px;
+}
+
+.verify-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.verify-metric {
+  min-height: 134px;
+  padding: 16px;
+  text-align: left;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(17, 22, 32, 0.78);
+  color: var(--text);
+  cursor: pointer;
+  transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+}
+
+.verify-metric:hover,
+.verify-metric:focus,
+.verify-metric.active {
+  outline: 0;
+  transform: translateY(-1px);
+  border-color: rgba(53, 216, 159, 0.52);
+  background: rgba(53, 216, 159, 0.08);
+}
+
+.verify-metric span,
+.verify-metric small,
+.verify-metric em {
+  display: block;
+  color: var(--muted);
+}
+
+.verify-metric span {
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.verify-metric strong {
+  display: block;
+  margin-top: 9px;
+  font-size: 24px;
+  overflow-wrap: anywhere;
+}
+
+.verify-metric.up strong {
+  color: var(--green);
+}
+
+.verify-metric.down strong {
+  color: var(--red);
+}
+
+.verify-metric.flat strong {
+  color: var(--amber);
+}
+
+.verify-metric small {
+  margin-top: 5px;
+}
+
+.verify-metric em {
+  margin-top: 12px;
+  font-style: normal;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.verify-workspace {
+  display: grid;
+  grid-template-columns: 390px minmax(0, 1fr);
+  gap: 16px;
+  align-items: stretch;
+}
+
+.evidence-panel,
+.pdf-panel {
+  min-height: 720px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(17, 22, 32, 0.78);
+  overflow: hidden;
+}
+
+.evidence-panel {
+  padding: 14px;
+  display: grid;
+  align-content: start;
+  gap: 10px;
+}
+
+.active-evidence {
+  padding: 15px;
+  border: 1px solid rgba(53, 216, 159, 0.36);
+  border-radius: 8px;
+  background: rgba(53, 216, 159, 0.08);
+  box-shadow: 0 0 40px rgba(53, 216, 159, 0.08);
+}
+
+.active-evidence strong,
+.active-evidence span {
+  display: block;
+}
+
+.active-evidence span {
+  margin-top: 8px;
+  color: #cbd7e7;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.evidence-card {
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.035);
+  transition: border-color 160ms ease, background 160ms ease;
+}
+
+.evidence-card.active {
+  border-color: rgba(119, 167, 255, 0.5);
+  background: rgba(119, 167, 255, 0.09);
+}
+
+.evidence-card span,
+.evidence-card small {
+  color: var(--muted);
+}
+
+.evidence-card span {
+  display: block;
+  font-size: 11px;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.evidence-card strong {
+  display: block;
+  margin-top: 6px;
+}
+
+.evidence-card p {
+  margin-top: 9px;
+  color: #cbd7e7;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.evidence-card small {
+  display: block;
+  margin-top: 10px;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.pdf-panel {
+  display: grid;
+  grid-template-rows: auto 1fr;
+}
+
+.pdf-toolbar {
+  min-height: 56px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.pdf-toolbar span {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.pdf-toolbar a {
+  color: var(--blue);
+  text-decoration: none;
+}
+
+#pdf-frame {
+  width: 100%;
+  height: 100%;
+  min-height: 660px;
+  border: 0;
+  background: #111620;
+}
+
+.pdf-stage {
+  position: relative;
+  min-height: 660px;
+  padding: 24px;
+  overflow: auto;
+  background:
+    linear-gradient(90deg, rgba(53, 216, 159, 0.05), transparent 28%),
+    #20242b;
+}
+
+.pdf-page-image {
+  display: block;
+  width: min(100%, 980px);
+  min-height: 620px;
+  margin: 0 auto;
+  border-radius: 4px;
+  background: #f4f4f4;
+  box-shadow: 0 22px 80px rgba(0, 0, 0, 0.42);
+  opacity: 0;
+  transition: opacity 180ms ease;
+}
+
+.pdf-page-image.loaded {
+  opacity: 1;
+}
+
+.pdf-page-image.failed {
+  display: none;
+}
+
+.pdf-render-failed {
+  display: none;
+  max-width: 520px;
+  margin: 180px auto;
+  padding: 22px;
+  border: 1px solid rgba(255, 107, 107, 0.38);
+  border-radius: 8px;
+  background: rgba(255, 107, 107, 0.08);
+  text-align: center;
+}
+
+.pdf-render-failed strong,
+.pdf-render-failed span,
+.pdf-render-failed a {
+  display: block;
+}
+
+.pdf-render-failed span {
+  margin-top: 8px;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.pdf-render-failed a {
+  margin-top: 14px;
+  color: var(--blue);
+  text-decoration: none;
+}
+
+.pdf-page-image.failed + .pdf-render-failed {
+  display: block;
+}
+
 @media (max-width: 1120px) {
   .workspace {
     grid-template-columns: 1fr;
@@ -782,6 +1090,23 @@ h2 {
 
   .inspector {
     min-height: 0;
+  }
+
+  .verify-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .evidence-panel,
+  .pdf-panel {
+    min-height: 0;
+  }
+
+  #pdf-frame {
+    min-height: 620px;
+  }
+
+  .pdf-stage {
+    min-height: 620px;
   }
 }
 
@@ -830,6 +1155,10 @@ h2 {
   }
 
   .guide-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .verify-summary {
     grid-template-columns: 1fr;
   }
 

@@ -24,11 +24,38 @@ PORT=4173
 POLL_INTERVAL_MS=6000
 HOT_POLL_INTERVAL_MS=3000
 COLLECTOR_MODE=live
+PROCESSING_CONCURRENCY=3
+PARSER_TIMEOUT_MS=30000
 WATCHLIST=
 PYTHON_PATH=python3
 NSE_ANNOUNCEMENTS_URL=https://www.nseindia.com/api/corporate-announcements?index=equities
 BSE_ANNOUNCEMENTS_URL=https://api.bseindia.com/BseIndiaAPI/api/AnnGetData/w?strCat=-1&strPrevDate=&strScrip=&strSearch=P&strToDate=&strType=C
+AI_PROVIDER=disabled
+AI_API_KEY=
+AI_MODEL=
+AI_EXTRACTION_MODE=disabled
 ```
+
+### AI-assisted extraction
+
+The parser can use Gemini, OpenAI, or Claude as a second extraction pass while keeping the same dashboard data model.
+
+```bash
+AI_PROVIDER=gemini        # gemini, openai, anthropic, claude, disabled
+AI_API_KEY=               # provider key
+AI_MODEL=                 # optional; provider default is used when blank
+AI_EXTRACTION_MODE=always # always, fallback, disabled
+AI_MAX_PAGES=4
+AI_MAX_CHARS_PER_PAGE=3600
+AI_TIMEOUT_MS=18000
+AI_MIN_LOCAL_CONFIDENCE=0.82
+AI_CONCURRENCY=1
+AI_RATE_LIMIT_COOLDOWN_MS=45000
+AI_REQUIRE_SUCCESS=false
+```
+
+Cost control is handled by the local parser first selecting compact candidate financial pages from the PDF. The AI provider receives only those page snippets plus local extraction hints, not the full PDF. Results are cached by PDF/input hash during the process lifetime.
+When `AI_REQUIRE_SUCCESS=false`, filings still produce dashboard cards if the AI provider is rate-limited; those cards are labelled with the AI error state so they are not mistaken for AI-verified figures.
 
 ## Scripts
 

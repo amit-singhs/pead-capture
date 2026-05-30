@@ -1,6 +1,7 @@
 import { createServer } from "node:http";
 import { readFile } from "node:fs/promises";
 import { extname, join, normalize } from "node:path";
+import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { PythonPortalCollector } from "./collectors/pythonPortalCollector.js";
 import { CollectorScheduler } from "./collectors/scheduler.js";
@@ -21,16 +22,25 @@ const mime = {
 };
 
 const staticRoot = fileURLToPath(config.staticRoot);
+const renderPdfPageScript = fileURLToPath(new URL("../python/render_pdf_page.py", import.meta.url));
 const store = new InMemoryStore();
 const eventBus = new EventBus();
 const pipeline = new FilingPipeline({
   store,
   eventBus,
-  parser: new PythonResultParser(),
-  scorer: new PeadScorer()
+  parser: new PythonResultParser({ timeoutMs: config.parserTimeoutMs }),
+  scorer: new PeadScorer(),
+  config
 });
 
 const collectors = [new PythonPortalCollector({ eventBus })];
+
+const allowedPdfHosts = new Set([
+  "nsearchives.nseindia.com",
+  "archives.nseindia.com",
+  "www.bseindia.com",
+  "api.bseindia.com"
+]);
 
 const sendJson = (res, status, body) => {
   const json = JSON.stringify(body);
@@ -39,6 +49,90 @@ const sendJson = (res, status, body) => {
     "content-length": Buffer.byteLength(json)
   });
   res.end(json);
+};
+
+const isAllowedPdfUrl = (value) => {
+  try {
+    const target = new URL(value);
+    return target.protocol === "https:" && allowedPdfHosts.has(target.hostname);
+  } catch {
+    return false;
+  }
+};
+
+const streamPdf = async (url, res) => {
+  if (!isAllowedPdfUrl(url)) {
+    sendJson(res, 400, { error: "Unsupported PDF source" });
+    return;
+  }
+
+  const target = new URL(url);
+  const response = await fetch(target, {
+    headers: {
+      accept: "application/pdf,*/*",
+      "accept-language": "en-US,en;q=0.9",
+      referer: target.hostname.includes("bseindia.com")
+        ? "https://www.bseindia.com/"
+        : "https://www.nseindia.com/",
+      "user-agent":
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124 Safari/537.36"
+    }
+  });
+
+  if (!response.ok) {
+    sendJson(res, response.status, { error: `Unable to load PDF: ${response.statusText}` });
+    return;
+  }
+
+  const body = Buffer.from(await response.arrayBuffer());
+  res.writeHead(200, {
+    "content-type": response.headers.get("content-type") || "application/pdf",
+    "content-length": body.byteLength,
+    "cache-control": "private, max-age=300",
+    "content-disposition": "inline",
+    "x-content-type-options": "nosniff"
+  });
+  res.end(body);
+};
+
+const streamPdfPage = async (url, page, search, res) => {
+  if (!isAllowedPdfUrl(url)) {
+    sendJson(res, 400, { error: "Unsupported PDF source" });
+    return;
+  }
+
+  const child = spawn(config.pythonPath, [renderPdfPageScript], {
+    stdio: ["pipe", "pipe", "pipe"]
+  });
+  const chunks = [];
+  const errors = [];
+
+  child.stdout.on("data", (chunk) => chunks.push(chunk));
+  child.stderr.on("data", (chunk) => errors.push(chunk));
+  child.stdin.end(JSON.stringify({ url, page, search }));
+
+  child.on("error", (error) => {
+    sendJson(res, 500, { error: error.message });
+  });
+
+  child.on("close", (code) => {
+    if (res.writableEnded) return;
+    if (code !== 0) {
+      const message = Buffer.concat(errors).toString("utf8").trim();
+      sendJson(res, 500, {
+        error: message || "Unable to render PDF page"
+      });
+      return;
+    }
+
+    const body = Buffer.concat(chunks);
+    res.writeHead(200, {
+      "content-type": "image/png",
+      "content-length": body.byteLength,
+      "cache-control": "private, max-age=300"
+    });
+    res.end(body);
+  });
 };
 
 const sendStatic = async (req, res) => {
@@ -105,6 +199,32 @@ const server = createServer(async (req, res) => {
 
   if (url.pathname === "/api/snapshot") {
     sendJson(res, 200, store.snapshot());
+    return;
+  }
+
+  if (url.pathname === "/api/pdf") {
+    await streamPdf(url.searchParams.get("url"), res);
+    return;
+  }
+
+  if (url.pathname === "/api/pdf-page") {
+    await streamPdfPage(
+      url.searchParams.get("url"),
+      url.searchParams.get("page"),
+      url.searchParams.get("search"),
+      res
+    );
+    return;
+  }
+
+  if (url.pathname.startsWith("/api/signals/")) {
+    const id = decodeURIComponent(url.pathname.replace("/api/signals/", ""));
+    const signal = store.signalById(id);
+    if (!signal) {
+      sendJson(res, 404, { error: "Signal not found" });
+      return;
+    }
+    sendJson(res, 200, { signal });
     return;
   }
 
