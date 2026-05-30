@@ -21,6 +21,13 @@ export class FilingPipeline {
 
     try {
       const metrics = await this.parser.parse(filing);
+      if (metrics.ai?.used && metrics.isQuarterlyResult === false) {
+        logger.info("signal.skipped.non_quarterly", {
+          symbol: filing.symbol,
+          source: filing.source
+        });
+        return;
+      }
       const previousSignal = this.store.latestSignalForSymbol(filing.symbol);
       const signal = this.scorer.score(filing, metrics, previousSignal);
       this.store.saveSignal(signal);

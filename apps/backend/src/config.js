@@ -18,6 +18,8 @@ const listFromEnv = (name, fallback) => {
     .filter(Boolean);
 };
 
+const valueFromEnv = (name, fallback = "") => process.env[name] || fallback;
+
 export const config = {
   port: numberFromEnv("PORT", 4173),
   pollIntervalMs: numberFromEnv("POLL_INTERVAL_MS", 6000),
@@ -41,5 +43,16 @@ export const config = {
     process.env.BSE_ATTACHMENT_ROOT ||
     "https://www.bseindia.com/xml-data/corpfiling/AttachLive",
   watchlist: listFromEnv("WATCHLIST", []),
+  ai: {
+    provider: valueFromEnv("AI_PROVIDER", "disabled").toLowerCase(),
+    apiKey: valueFromEnv("AI_API_KEY"),
+    model: valueFromEnv("AI_MODEL"),
+    extractionMode: valueFromEnv("AI_EXTRACTION_MODE", "disabled").toLowerCase(),
+    maxPages: numberFromEnv("AI_MAX_PAGES", 4),
+    maxCharsPerPage: numberFromEnv("AI_MAX_CHARS_PER_PAGE", 3600),
+    timeoutMs: numberFromEnv("AI_TIMEOUT_MS", 18000),
+    minLocalConfidence: numberFromEnv("AI_MIN_LOCAL_CONFIDENCE", 0.82),
+    concurrency: numberFromEnv("AI_CONCURRENCY", 2)
+  },
   staticRoot: new URL("../../frontend/", import.meta.url)
 };

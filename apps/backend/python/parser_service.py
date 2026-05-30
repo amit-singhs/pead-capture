@@ -177,6 +177,41 @@ def evidence_for_metric(pages, names, current_value):
     return None
 
 
+def candidate_pages_for_ai(pages, max_pages=4, max_chars=3600):
+    terms = [
+        "revenue from operations",
+        "total revenue",
+        "total income",
+        "profit after tax",
+        "net profit",
+        "earnings per share",
+        "basic eps",
+        "diluted eps",
+        "quarter ended",
+        "financial results",
+        "standalone",
+        "consolidated",
+    ]
+    scored = []
+    for index, page_text in enumerate(pages[:10]):
+        cleaned = re.sub(r"\s+", " ", page_text or "").strip()
+        if not cleaned:
+            continue
+        lower = cleaned.lower()
+        score = sum(4 for term in terms if term in lower)
+        score += min(4, len(re.findall(r"-?\d[\d,]*(?:\.\d+)?", cleaned)) // 12)
+        if score <= 0:
+            continue
+        scored.append({
+            "page": index + 1,
+            "score": score,
+            "text": cleaned[:max_chars],
+        })
+    scored.sort(key=lambda item: item["score"], reverse=True)
+    selected = sorted(scored[:max_pages], key=lambda item: item["page"])
+    return selected
+
+
 def pct_change(current, previous):
     if current is None or previous in (None, 0):
         return None
@@ -266,6 +301,7 @@ def extract_metrics(text, mode, pdf_stats=None, pages=None):
         "currency": "INR",
         "extractionWarning": extraction_warning,
         "pdfStats": pdf_stats or {},
+        "aiCandidatePages": candidate_pages_for_ai(pages or []),
         "evidence": {
             "revenue": evidence_for_metric(pages or [], revenue_labels, revenue_current),
             "profit": evidence_for_metric(pages or [], profit_labels, profit_current),

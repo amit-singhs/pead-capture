@@ -28,7 +28,29 @@ WATCHLIST=
 PYTHON_PATH=python3
 NSE_ANNOUNCEMENTS_URL=https://www.nseindia.com/api/corporate-announcements?index=equities
 BSE_ANNOUNCEMENTS_URL=https://api.bseindia.com/BseIndiaAPI/api/AnnGetData/w?strCat=-1&strPrevDate=&strScrip=&strSearch=P&strToDate=&strType=C
+AI_PROVIDER=disabled
+AI_API_KEY=
+AI_MODEL=
+AI_EXTRACTION_MODE=disabled
 ```
+
+### AI-assisted extraction
+
+The parser can use Gemini, OpenAI, or Claude as a second extraction pass while keeping the same dashboard data model.
+
+```bash
+AI_PROVIDER=gemini        # gemini, openai, anthropic, claude, disabled
+AI_API_KEY=               # provider key
+AI_MODEL=                 # optional; provider default is used when blank
+AI_EXTRACTION_MODE=always # always, fallback, disabled
+AI_MAX_PAGES=4
+AI_MAX_CHARS_PER_PAGE=3600
+AI_TIMEOUT_MS=18000
+AI_MIN_LOCAL_CONFIDENCE=0.82
+AI_CONCURRENCY=2
+```
+
+Cost control is handled by the local parser first selecting compact candidate financial pages from the PDF. The AI provider receives only those page snippets plus local extraction hints, not the full PDF. Results are cached by PDF/input hash during the process lifetime.
 
 ## Scripts
 
