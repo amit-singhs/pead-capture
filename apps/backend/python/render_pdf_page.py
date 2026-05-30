@@ -43,13 +43,15 @@ def draw_search_highlight(page, image, search_text, scale):
     highlighted = False
     for rect_index in range(rect_count):
         left, bottom, right, top = textpage.get_rect(rect_index)
-        x1 = max(0, int(left * scale) - 10)
-        y1 = max(0, int(image_height - top * scale) - 8)
-        x2 = min(image.width, int(right * scale) + 10)
-        y2 = min(image.height, int(image_height - bottom * scale) + 8)
+        x1 = max(0, int(left * scale) - 4)
+        y1 = max(0, int(image_height - top * scale) - 2)
+        x2 = min(image.width, int(right * scale) + 4)
+        y2 = min(image.height, int(image_height - bottom * scale) + 2)
         if x2 <= x1 or y2 <= y1:
             continue
-        draw.rectangle((x1, y1, x2, y2), fill=(53, 216, 159, 58), outline=(53, 216, 159, 230), width=4)
+        underline_y = min(image.height - 1, y2 + 2)
+        draw.rectangle((x1, y1, x2, y2), fill=(155, 163, 175, 42))
+        draw.line((x1, underline_y, x2, underline_y), fill=(79, 86, 96, 190), width=2)
         highlighted = True
     return highlighted
 
