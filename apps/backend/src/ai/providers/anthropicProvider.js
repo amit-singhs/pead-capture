@@ -31,7 +31,12 @@ export const createAnthropicProvider = ({ apiKey, model, timeoutMs }) => ({
           tool_choice: { type: "tool", name: "return_financial_result_extraction" }
         })
       });
-      if (!response.ok) throw new Error(`Anthropic extraction failed: ${response.status}`);
+      if (!response.ok) {
+        const error = new Error(`Anthropic extraction failed: ${response.status}`);
+        error.status = response.status;
+        error.retryAfterMs = Number(response.headers.get("retry-after") || 0) * 1000;
+        throw error;
+      }
       const data = await response.json();
       const toolUse = (data?.content || []).find((part) => part.type === "tool_use");
       return toolUse?.input || {};

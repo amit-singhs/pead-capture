@@ -37,7 +37,12 @@ export const createGeminiProvider = ({ apiKey, model, timeoutMs }) => ({
           })
         }
       );
-      if (!response.ok) throw new Error(`Gemini extraction failed: ${response.status}`);
+      if (!response.ok) {
+        const error = new Error(`Gemini extraction failed: ${response.status}`);
+        error.status = response.status;
+        error.retryAfterMs = Number(response.headers.get("retry-after") || 0) * 1000;
+        throw error;
+      }
       return jsonFromGemini(await response.json());
     } finally {
       clearTimeout(timer);

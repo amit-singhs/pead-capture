@@ -530,6 +530,34 @@ h2 {
   color: var(--amber);
 }
 
+.ai-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 0 8px;
+  border: 1px solid rgba(119, 167, 255, 0.24);
+  border-radius: 6px;
+  color: #cbd7e7;
+  background: rgba(119, 167, 255, 0.08);
+  font-weight: 850;
+}
+
+.ai-badge.verified {
+  color: var(--green);
+  border-color: rgba(53, 216, 159, 0.34);
+  background: rgba(53, 216, 159, 0.08);
+}
+
+.ai-badge.failed {
+  color: var(--red);
+  border-color: rgba(255, 107, 107, 0.34);
+  background: rgba(255, 107, 107, 0.08);
+}
+
+.ai-badge.muted {
+  color: var(--muted);
+}
+
 .filings {
   padding: 14px;
   display: grid;
@@ -844,8 +872,19 @@ h2 {
   display: block;
   margin-top: 9px;
   font-size: 24px;
-  color: var(--green);
   overflow-wrap: anywhere;
+}
+
+.verify-metric.up strong {
+  color: var(--green);
+}
+
+.verify-metric.down strong {
+  color: var(--red);
+}
+
+.verify-metric.flat strong {
+  color: var(--amber);
 }
 
 .verify-metric small {
@@ -991,22 +1030,6 @@ h2 {
     #20242b;
 }
 
-.pdf-source-highlight {
-  position: absolute;
-  top: 18px;
-  right: 18px;
-  z-index: 3;
-  width: min(440px, calc(100% - 36px));
-  padding: 15px 16px;
-  border: 1px solid rgba(53, 216, 159, 0.5);
-  border-left: 5px solid var(--green);
-  border-radius: 8px;
-  background: rgba(5, 8, 13, 0.92);
-  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.42), 0 0 34px rgba(53, 216, 159, 0.18);
-  backdrop-filter: blur(14px);
-  pointer-events: none;
-}
-
 .pdf-page-image {
   display: block;
   width: min(100%, 980px);
@@ -1058,51 +1081,6 @@ h2 {
 
 .pdf-page-image.failed + .pdf-render-failed {
   display: block;
-}
-
-.pdf-source-highlight::before {
-  content: "";
-  position: absolute;
-  left: -5px;
-  top: 12px;
-  bottom: 12px;
-  width: 5px;
-  border-radius: 999px;
-  background: var(--green);
-  box-shadow: 0 0 24px var(--green);
-  animation: sourcePulse 1.8s ease-in-out infinite;
-}
-
-.pdf-source-highlight span {
-  display: block;
-  color: var(--green);
-  font-size: 11px;
-  font-weight: 900;
-  text-transform: uppercase;
-}
-
-.pdf-source-highlight strong {
-  display: block;
-  margin-top: 5px;
-}
-
-.pdf-source-highlight p {
-  margin-top: 8px;
-  color: #d9e4f2;
-  font-size: 12px;
-  line-height: 1.45;
-  max-height: 6.2em;
-  overflow: hidden;
-}
-
-@keyframes sourcePulse {
-  0%,
-  100% {
-    opacity: 0.55;
-  }
-  50% {
-    opacity: 1;
-  }
 }
 
 @media (max-width: 1120px) {

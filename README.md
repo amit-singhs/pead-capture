@@ -47,7 +47,8 @@ AI_MAX_PAGES=4
 AI_MAX_CHARS_PER_PAGE=3600
 AI_TIMEOUT_MS=18000
 AI_MIN_LOCAL_CONFIDENCE=0.82
-AI_CONCURRENCY=2
+AI_CONCURRENCY=1
+AI_RATE_LIMIT_COOLDOWN_MS=45000
 ```
 
 Cost control is handled by the local parser first selecting compact candidate financial pages from the PDF. The AI provider receives only those page snippets plus local extraction hints, not the full PDF. Results are cached by PDF/input hash during the process lifetime.

@@ -55,6 +55,13 @@ export const mergeAiExtraction = ({ localMetrics, aiResult, provider, model }) =
   const epsPrevious = sanitizeEps(eps.previousValue) ?? localMetrics.previousEps ?? null;
 
   const warnings = Array.isArray(aiResult?.warnings) ? aiResult.warnings.filter(Boolean) : [];
+  for (const [label, metric] of [
+    ["revenue", revenue],
+    ["profit after tax", profit],
+    ["EPS", eps]
+  ]) {
+    if (finiteNumber(metric.value) === null) warnings.push(`AI could not verify ${label} from the selected financial pages.`);
+  }
   const metricConfidence = confidenceAverage([
     aiResult?.confidence,
     revenue.confidence,

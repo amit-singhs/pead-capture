@@ -31,7 +31,12 @@ export const createOpenAiProvider = ({ apiKey, model, timeoutMs }) => ({
           }
         })
       });
-      if (!response.ok) throw new Error(`OpenAI extraction failed: ${response.status}`);
+      if (!response.ok) {
+        const error = new Error(`OpenAI extraction failed: ${response.status}`);
+        error.status = response.status;
+        error.retryAfterMs = Number(response.headers.get("retry-after") || 0) * 1000;
+        throw error;
+      }
       const data = await response.json();
       return JSON.parse(data?.choices?.[0]?.message?.content || "{}");
     } finally {

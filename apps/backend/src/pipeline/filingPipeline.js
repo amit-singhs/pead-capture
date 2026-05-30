@@ -21,6 +21,14 @@ export class FilingPipeline {
 
     try {
       const metrics = await this.parser.parse(filing);
+      if (this.config.ai?.extractionMode === "always" && metrics.ai && !metrics.ai.used) {
+        logger.info("signal.skipped.ai_unavailable", {
+          symbol: filing.symbol,
+          source: filing.source,
+          reason: metrics.ai.error || metrics.ai.reason || "ai-unavailable"
+        });
+        return;
+      }
       if (metrics.ai?.used && metrics.isQuarterlyResult === false) {
         logger.info("signal.skipped.non_quarterly", {
           symbol: filing.symbol,

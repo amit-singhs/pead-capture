@@ -52,7 +52,8 @@ export const config = {
     maxCharsPerPage: numberFromEnv("AI_MAX_CHARS_PER_PAGE", 3600),
     timeoutMs: numberFromEnv("AI_TIMEOUT_MS", 18000),
     minLocalConfidence: numberFromEnv("AI_MIN_LOCAL_CONFIDENCE", 0.82),
-    concurrency: numberFromEnv("AI_CONCURRENCY", 2)
+    concurrency: numberFromEnv("AI_CONCURRENCY", 1),
+    rateLimitCooldownMs: numberFromEnv("AI_RATE_LIMIT_COOLDOWN_MS", 45000)
   },
   staticRoot: new URL("../../frontend/", import.meta.url)
 };

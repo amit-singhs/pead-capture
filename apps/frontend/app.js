@@ -112,6 +112,19 @@ const metric = ({ label, current, previous, suffix = "", tip, formatter = format
   </div>
 `;
 
+const aiStatus = (metrics = {}) => {
+  if (metrics.ai?.used) {
+    const confidence = Math.round((metrics.ai.confidence || 0) * 100);
+    return `<span class="ai-badge verified">AI ${metrics.ai.provider} ${confidence}%</span>`;
+  }
+  if (metrics.ai?.error) {
+    const label = String(metrics.ai.error).includes("429") ? "AI rate limited" : "AI failed";
+    return `<span class="ai-badge failed">${label}</span>`;
+  }
+  if (metrics.ai?.reason) return `<span class="ai-badge muted">AI ${metrics.ai.reason}</span>`;
+  return `<span class="ai-badge muted">Local parser</span>`;
+};
+
 const verifyUrl = (signal) => `/verify.html?id=${encodeURIComponent(signal.id)}`;
 
 const renderSignals = () => {
@@ -176,6 +189,7 @@ const renderSignals = () => {
         <div class="signal-foot">
           <span>Latency ${formatLatency(signal.latencyMs)}</span>
           <span>Confidence ${Math.round((signal.confidence || 0) * 100)}%</span>
+          ${aiStatus(signal.metrics)}
           ${signal.metrics.extractionWarning ? `<span class="warning-note">${signal.metrics.extractionWarning}</span>` : ""}
           ${signal.attachmentUrl ? `<a href="${verifyUrl(signal)}" data-verify-signal="${encodeURIComponent(signal.id)}" target="_blank" rel="noreferrer">Verify with PDF</a>` : ""}
         </div>

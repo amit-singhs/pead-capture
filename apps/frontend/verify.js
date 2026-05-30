@@ -36,6 +36,13 @@ const formatPct = (value) => {
   return `${Number(value).toLocaleString("en-IN", { maximumFractionDigits: 2 })}%`;
 };
 
+const comparisonClass = (current, previous) => {
+  if (current === null || current === undefined || previous === null || previous === undefined) return "";
+  if (current > previous) return "up";
+  if (current < previous) return "down";
+  return "flat";
+};
+
 const searchTermFor = (evidence) => {
   if (!evidence) return "";
   if (Array.isArray(evidence.matchedLabels) && evidence.matchedLabels.length) {
@@ -82,8 +89,8 @@ const evidenceCard = (key, evidence) => {
   `;
 };
 
-const metricCard = ({ key, label, value, previous, description }) => `
-  <button class="verify-metric" data-metric="${key}" type="button" aria-label="Show ${label} source evidence">
+const metricCard = ({ key, label, value, previous, trend = "", description }) => `
+  <button class="verify-metric ${trend}" data-metric="${key}" type="button" aria-label="Show ${label} source evidence">
     <span>${label}</span>
     <strong>${value}</strong>
     <small>Prev ${previous}</small>
@@ -103,7 +110,6 @@ const selectMetric = (key, signal) => {
   const evidence = signal.metrics.evidence?.[evidenceKey];
   const banner = document.querySelector("#active-evidence");
   const pageImage = document.querySelector("#pdf-page-image");
-  const spotlight = document.querySelector("#pdf-source-highlight");
   const pageLabel = document.querySelector("#pdf-page-label");
   const fallback = document.querySelector("#pdf-fallback");
   const stage = document.querySelector(".pdf-stage");
@@ -111,19 +117,6 @@ const selectMetric = (key, signal) => {
     banner.innerHTML = evidence
       ? `<strong>${metricLabels[key]} source: Page ${evidence.page}</strong><span>${evidence.snippet}</span>`
       : `<strong>${metricLabels[key]} source</strong><span>Exact row was not found in the PDF text layer. Please review the embedded report manually.</span>`;
-  }
-  if (spotlight) {
-    spotlight.innerHTML = evidence
-      ? `
-        <span>Selected source</span>
-        <strong>${metricLabels[key]} · Page ${evidence.page}</strong>
-        <p>${evidence.snippet}</p>
-      `
-      : `
-        <span>Selected source</span>
-        <strong>${metricLabels[key]}</strong>
-        <p>No precise PDF text snippet was isolated for this metric.</p>
-      `;
   }
   if (pageImage && signal.attachmentUrl) {
     pageImage.classList.remove("loaded", "failed");
@@ -157,6 +150,7 @@ const renderSignal = (signal) => {
         label: "Revenue",
         value: formatMoney(metrics.revenueCrore, unit),
         previous: formatMoney(signal.previous?.revenueCrore, unit),
+        trend: comparisonClass(metrics.revenueCrore, signal.previous?.revenueCrore),
         description: "Hover or focus to reveal where this came from."
       })}
       ${metricCard({
@@ -164,6 +158,7 @@ const renderSignal = (signal) => {
         label: "Profit",
         value: formatMoney(metrics.profitCrore, unit),
         previous: formatMoney(signal.previous?.profitCrore, unit),
+        trend: comparisonClass(metrics.profitCrore, signal.previous?.profitCrore),
         description: "Matched against profit rows in the report."
       })}
       ${metricCard({
@@ -171,6 +166,7 @@ const renderSignal = (signal) => {
         label: "EPS",
         value: formatEps(metrics.eps),
         previous: formatEps(signal.previous?.eps),
+        trend: comparisonClass(metrics.eps, signal.previous?.eps),
         description: "Per-share value from the PDF table."
       })}
       ${metricCard({
@@ -178,6 +174,7 @@ const renderSignal = (signal) => {
         label: "Revenue growth",
         value: formatPct(metrics.revenueGrowthPct),
         previous: "0%",
+        trend: comparisonClass(metrics.revenueGrowthPct, 0),
         description: "Calculated from current and previous revenue."
       })}
     </section>
@@ -204,7 +201,6 @@ const renderSignal = (signal) => {
           <a href="${signal.attachmentUrl}" target="_blank" rel="noreferrer">Open original PDF</a>
         </div>
         <div class="pdf-stage">
-          <div id="pdf-source-highlight" class="pdf-source-highlight"></div>
           <img id="pdf-page-image" class="pdf-page-image" alt="Rendered page from report PDF" />
           <div id="pdf-render-failed" class="pdf-render-failed">
             <strong>PDF page render failed</strong>

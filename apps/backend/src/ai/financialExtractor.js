@@ -9,14 +9,23 @@ import { logger } from "../utils/logger.js";
 const cache = new Map();
 let activeAiRequests = 0;
 const queuedAiRequests = [];
+let nextAiAllowedAt = 0;
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const withAiSlot = (task) =>
   new Promise((resolve, reject) => {
     const run = async () => {
       activeAiRequests += 1;
       try {
+        const waitMs = Math.max(0, nextAiAllowedAt - Date.now());
+        if (waitMs > 0) await sleep(waitMs);
         resolve(await task());
       } catch (error) {
+        if (error.status === 429) {
+          const cooldown = error.retryAfterMs || config.ai.rateLimitCooldownMs;
+          nextAiAllowedAt = Math.max(nextAiAllowedAt, Date.now() + cooldown);
+        }
         reject(error);
       } finally {
         activeAiRequests -= 1;
@@ -148,7 +157,9 @@ export class FinancialAiExtractor {
       logger.info("ai.extraction.failed", {
         provider: this.provider.name,
         symbol: filing.symbol,
-        message: error.message
+        errorMessage: error.message,
+        status: error.status || null,
+        cooldownMs: error.status === 429 ? config.ai.rateLimitCooldownMs : 0
       });
       return {
         ...stripAiCandidatePages(metrics),
