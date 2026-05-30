@@ -1,3 +1,5 @@
+import { apiUrl, eventUrl } from "./runtime.js";
+
 const state = {
   filings: [],
   freshFilings: [],
@@ -355,7 +357,7 @@ const updateDynamicTimes = () => {
 const connect = () => {
   const dot = $("#connection-dot");
   const label = $("#connection-label");
-  const events = new EventSource("/api/events");
+  const events = new EventSource(eventUrl("/api/events"));
 
   events.addEventListener("open", () => {
     dot.classList.add("online");
@@ -395,7 +397,7 @@ const connect = () => {
 };
 
 $("#refresh-button").addEventListener("click", async () => {
-  const response = await fetch("/api/snapshot");
+  const response = await fetch(apiUrl("/api/snapshot"));
   applySnapshot(await response.json());
 });
 

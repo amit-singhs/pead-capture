@@ -18,6 +18,15 @@ const listFromEnv = (name, fallback) => {
     .filter(Boolean);
 };
 
+const stringListFromEnv = (name, fallback) => {
+  const raw = process.env[name];
+  if (!raw) return fallback;
+  return raw
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+};
+
 const valueFromEnv = (name, fallback = "") => process.env[name] || fallback;
 const booleanFromEnv = (name, fallback) => {
   const raw = process.env[name];
@@ -32,6 +41,8 @@ export const config = {
   processingConcurrency: numberFromEnv("PROCESSING_CONCURRENCY", 3),
   parserTimeoutMs: numberFromEnv("PARSER_TIMEOUT_MS", 30000),
   reportFreshnessHours: numberFromEnv("REPORT_FRESHNESS_HOURS", 5),
+  allowedOrigins: stringListFromEnv("ALLOWED_ORIGINS", []),
+  publicApiBaseUrl: valueFromEnv("PUBLIC_API_BASE_URL"),
   mode: process.env.COLLECTOR_MODE || "live",
   pythonPath: process.env.PYTHON_PATH || "python3",
   nseAnnouncementsUrl:

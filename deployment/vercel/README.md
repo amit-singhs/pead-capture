@@ -13,4 +13,11 @@ The current repo is portable for long-running hosts through:
 - `Dockerfile`
 - `Procfile`
 
-If deploying behind Vercel as a frontend, set the frontend API base URL to your backend host in a future config layer.
+If deploying behind Vercel as a frontend, keep the collector/API on a long-running host and point the frontend to it through `window.__PEAD_CONFIG__.apiBaseUrl` or by opening the dashboard once with `?apiBaseUrl=https://your-backend-host`.
+
+The backend must allow the Vercel origin:
+
+```bash
+ALLOWED_ORIGINS=https://your-frontend.vercel.app
+PUBLIC_API_BASE_URL=https://your-backend-host
+```

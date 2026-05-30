@@ -26,6 +26,8 @@ HOT_POLL_INTERVAL_MS=3000
 COLLECTOR_MODE=live
 PROCESSING_CONCURRENCY=3
 PARSER_TIMEOUT_MS=30000
+ALLOWED_ORIGINS=
+PUBLIC_API_BASE_URL=
 WATCHLIST=
 PYTHON_PATH=python3
 NSE_ANNOUNCEMENTS_URL=https://www.nseindia.com/api/corporate-announcements?index=equities
@@ -117,6 +119,42 @@ docker run --env-file .env -p 4173:4173 pead-capture
 ### Render, Railway, Fly.io, VPS, EC2, DigitalOcean
 
 Use `npm start` as the start command. Install Python dependencies from `requirements.txt`, or use the included `Dockerfile`.
+
+### Railway full-app deployment
+
+Railway is the simplest remote deployment for this app because it supports a long-running process. The repo includes `railway.json` and `Dockerfile`, so Railway can build the Node/Python service directly.
+
+Set these Railway variables:
+
+```bash
+COLLECTOR_MODE=live
+AI_PROVIDER=gemini
+AI_API_KEY=your_key
+AI_EXTRACTION_MODE=always
+AI_CONCURRENCY=1
+AI_REQUIRE_SUCCESS=false
+PROCESSING_CONCURRENCY=3
+PARSER_TIMEOUT_MS=30000
+```
+
+Do not set `PORT`; Railway provides it automatically. After deployment, open the Railway public URL and check `/api/health`.
+
+### Vercel frontend plus Railway backend
+
+If the frontend is hosted separately, set the backend CORS allow-list:
+
+```bash
+ALLOWED_ORIGINS=https://your-frontend.vercel.app
+PUBLIC_API_BASE_URL=https://your-backend.up.railway.app
+```
+
+The frontend reads its API base from `window.__PEAD_CONFIG__.apiBaseUrl`. For a static frontend host, you can also open the dashboard once with:
+
+```text
+https://your-frontend.vercel.app/?apiBaseUrl=https://your-backend.up.railway.app
+```
+
+That value is stored in the browser and used for `/api/snapshot`, `/api/events`, PDF rendering, and verification pages.
 
 ### Vercel
 

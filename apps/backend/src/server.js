@@ -51,6 +51,34 @@ const sendJson = (res, status, body) => {
   res.end(json);
 };
 
+const allowedOriginFor = (req) => {
+  const origin = req.headers.origin;
+  if (!origin) return "";
+  if (config.allowedOrigins.includes("*") || config.allowedOrigins.includes(origin)) return origin;
+  return "";
+};
+
+const writeCorsHeaders = (req, res) => {
+  const origin = allowedOriginFor(req);
+  if (!origin) return;
+  res.setHeader("access-control-allow-origin", origin);
+  res.setHeader("access-control-allow-methods", "GET, OPTIONS");
+  res.setHeader("access-control-allow-headers", "content-type");
+  res.setHeader("vary", "Origin");
+};
+
+const sendRuntimeConfig = (res) => {
+  const body = `window.__PEAD_CONFIG__ = ${JSON.stringify({
+    apiBaseUrl: config.publicApiBaseUrl
+  })};`;
+  res.writeHead(200, {
+    "content-type": "text/javascript; charset=utf-8",
+    "content-length": Buffer.byteLength(body),
+    "cache-control": "no-store"
+  });
+  res.end(body);
+};
+
 const isAllowedPdfUrl = (value) => {
   try {
     const target = new URL(value);
@@ -180,7 +208,19 @@ const handleEvents = (req, res) => {
 };
 
 const server = createServer(async (req, res) => {
+  writeCorsHeaders(req, res);
+  if (req.method === "OPTIONS") {
+    res.writeHead(204);
+    res.end();
+    return;
+  }
+
   const url = new URL(req.url, `http://${req.headers.host}`);
+
+  if (url.pathname === "/config.js") {
+    sendRuntimeConfig(res);
+    return;
+  }
 
   if (url.pathname === "/api/health") {
     sendJson(res, 200, {

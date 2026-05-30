@@ -1,3 +1,5 @@
+import { apiUrl } from "./runtime.js";
+
 const params = new URLSearchParams(window.location.search);
 const signalId = params.get("id");
 const content = document.querySelector("#verify-content");
@@ -53,7 +55,7 @@ const searchTermFor = (evidence) => {
 
 const pdfUrlFor = (baseUrl, evidence) => {
   if (!baseUrl) return "";
-  const proxiedUrl = `/api/pdf?url=${encodeURIComponent(baseUrl)}`;
+  const proxiedUrl = apiUrl(`/api/pdf?url=${encodeURIComponent(baseUrl)}`);
   const hashParts = [];
   if (evidence?.page) hashParts.push(`page=${evidence.page}`);
   const searchTerm = searchTermFor(evidence);
@@ -66,7 +68,7 @@ const pageImageUrlFor = (baseUrl, evidence) => {
   const page = evidence?.page || 1;
   const searchTerm = searchTermFor(evidence);
   const search = searchTerm ? `&search=${encodeURIComponent(searchTerm)}` : "";
-  return `/api/pdf-page?url=${encodeURIComponent(baseUrl)}&page=${encodeURIComponent(page)}${search}`;
+  return apiUrl(`/api/pdf-page?url=${encodeURIComponent(baseUrl)}&page=${encodeURIComponent(page)}${search}`);
 };
 
 const evidenceCard = (key, evidence) => {
@@ -241,12 +243,12 @@ const cachedSignal = () => {
 };
 
 const fetchSignalFromApi = async () => {
-  const response = await fetch(`/api/signals/${encodeURIComponent(signalId)}`);
+  const response = await fetch(apiUrl(`/api/signals/${encodeURIComponent(signalId)}`));
   if (response.ok) {
     const { signal } = await response.json();
     return signal;
   }
-  const snapshotResponse = await fetch("/api/snapshot");
+  const snapshotResponse = await fetch(apiUrl("/api/snapshot"));
   if (!snapshotResponse.ok) return null;
   const snapshot = await snapshotResponse.json();
   return (snapshot.signals || []).find((signal) => signal.id === signalId) || null;
